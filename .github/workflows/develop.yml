@@ -1,0 +1,40 @@
+
+name: Deploy to GCP DEV VM
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_DEV }}
+
+      - name: Sync files to remote server using rsync
+        env:
+          GCP_VM_USERNAME: ${{ secrets.GCP_VM_USERNAME_DEV }}
+          GCP_VM_IP: ${{ secrets.GCP_VM_IP_DEV }}
+        run: |
+          rsync -avz --delete --delete --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --include='.*' --include='*' --prune-empty-dirs -e "ssh -vvv -o StrictHostKeyChecking=no" ./ ${{ secrets.GCP_VM_USERNAME_DEV }}@${{ secrets.GCP_VM_IP_DEV }}:/var/www/svelte-dev/
+
+      - name: SSH into the server and deploy with Docker Compose
+        env:
+          GCP_VM_USERNAME: ${{ secrets.GCP_VM_USERNAME_DEV }}
+          GCP_VM_IP: ${{ secrets.GCP_VM_IP_DEV }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $GCP_VM_USERNAME@$GCP_VM_IP << 'EOF'
+            set -e
+            cd /var/www/svelte-dev
+            docker system prune -af
+            docker build --build-arg VITE_FB_ID=1923161321262442  --build-arg VITE_GOOGLE_ID=1098766585632-2n7ik4lrosm8kdh1ub2v594clieulu6v.apps.googleusercontent.com --build-arg  VITE_JW_LIVE_TV_ENGLISH=0JMA8rXq --build-arg VITE_JW_LIVE_TV_HINDI=KYQv7H88  --build-arg VITE_JW_LIVE_TV_BANGLA=jhPBndGO --build-arg VITE_GA_ID=G-5R3HXP63GC --build-arg VITE_PIN_INTEREST=0557bda55a05238368f86a9e15dca956 --build-arg VITE_GOOGLE_SITE_VERFICATION=cU_o7P6kj1ep1tjsazcIG4QcPL5NCBOdZObrhg8xUAU --build-arg VITE_APPLE_ID=1326556994 --build-arg VITE_FB_APP_ID=1938877716402788 --build-arg VITE_FB_PAGE=1159346367512575 --build-arg VITE_YANDEX_ID=9453f2e375ab432b -t svelte .
+            docker compose up -d
+          EOF
