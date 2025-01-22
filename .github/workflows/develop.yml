@@ -35,6 +35,6 @@ jobs:
             set -e
             cd /home/maruthiwork0009/task2/
            sudo docker system prune -af
-           sudo docker build --build-arg VITE_FB_ID=1923161321262442  --build-arg VITE_GOOGLE_ID=1098766585632-2n7ik4lrosm8kdh1ub2v594clieulu6v.apps.googleusercontent.com --build-arg  VITE_JW_LIVE_TV_ENGLISH=0JMA8rXq --build-arg VITE_JW_LIVE_TV_HINDI=KYQv7H88  --build-arg VITE_JW_LIVE_TV_BANGLA=jhPBndGO --build-arg VITE_GA_ID=G-5R3HXP63GC --build-arg VITE_PIN_INTEREST=0557bda55a05238368f86a9e15dca956 --build-arg VITE_GOOGLE_SITE_VERFICATION=cU_o7P6kj1ep1tjsazcIG4QcPL5NCBOdZObrhg8xUAU --build-arg VITE_APPLE_ID=1326556994 --build-arg VITE_FB_APP_ID=1938877716402788 --build-arg VITE_FB_PAGE=1159346367512575 --build-arg VITE_YANDEX_ID=9453f2e375ab432b -t svelte .
+           sudo docker build -t svelte .
            sudo docker compose up -d
           EOF
