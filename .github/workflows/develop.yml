@@ -14,15 +14,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_DEV }}
+   - name: Set up SSH key for GCP VM access
+        run: |
+          # mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_DEV }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP_DEV }} >> ~/.ssh/known_hosts  # Optional: adds the VM to known hosts
+      - name: SSH to VM and deploy with Docker Compose
+        run: |
+          rsync -avz --delete --delete --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --include='.*' --include='*' --prune-empty-dirs -e "ssh -vvv -o StrictHostKeyChecking=no" ./ ${{ secrets.GCP_VM_USERNAME }}@${{ secrets.GCP_VM_IP }}:/home/maruthiwork0009/task/  
 
-      - name: Sync files to remote server using rsync
-        env:
-          GCP_VM_USERNAME: ${{ secrets.GCP_VM_USERNAME_DEV }}
-          GCP_VM_IP: ${{ secrets.GCP_VM_IP_DEV }}
         run: |
           rsync -avz --delete --delete --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --include='.*' --include='*' --prune-empty-dirs -e "ssh -vvv -o StrictHostKeyChecking=no" ./ ${{ secrets.GCP_VM_USERNAME_DEV  }}@${{ secrets.GCP_VM_IP_DEV }}:/home/maruthiwork0009/task2/
       - name: SSH into the server and deploy with Docker Compose
